@@ -1,1 +1,2 @@
-# docker-jira-traefik-postgres-backup
+# Docker Compose for Jira, Postgres, Traefik
+

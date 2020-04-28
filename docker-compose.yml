@@ -2,7 +2,6 @@ version: '3'
 services:
   jira-db:
     image: postgres:${POSTGRES_VERSION}
-    container_name: jira-db
     restart: unless-stopped
     volumes:
       - ${DB_FILES_LOCATION}:/var/lib/postgresql/data
@@ -11,37 +10,36 @@ services:
       - POSTGRES_USER=${DB_USER}
       - POSTGRES_DB=${DB_NAME}
     labels:
-      - "traefik.enable=false"
+      - traefik.enable=false
     networks:
-      - ${INTERNAL_NETWORK}
+      - internal
 
   jira-web:
     image: atlassian/jira-software:${JIRA_VERSION}
-    container_name: jira-web
     restart: unless-stopped
     volumes:
       -  ${JIRA_FILES_LOCATION}:/var/atlassian/application-data/jira
     expose:
       - 8080
     labels:
-      - "traefik.docker.network=${EXTERNAL_NETWORK}"
-      - "traefik.enable=true"
-      - "traefik.frontend.rule=Host:${DOMAIN}"
-      - "traefik.port=8080"
+      - traefik.docker.network=${EXTERNAL_NETWORK}
+      - traefik.enable=true
+      - traefik.frontend.rule=Host:${DOMAIN}
+      - traefik.port=8080
     environment:
       - ATL_PROXY_NAME=${DOMAIN}
       - ATL_PROXY_PORT=443
       - ATL_TOMCAT_SCHEME=https
       - ATL_TOMCAT_SECURE=true
     networks:
-      - ${EXTERNAL_NETWORK}
-      - ${INTERNAL_NETWORK}
+      - internal
+      - traefik
     depends_on:
       - jira-db
 
 networks:
-  ${EXTERNAL_NETWORK}:
+  traefik:
     external:
       name: ${EXTERNAL_NETWORK}
-  ${INTERNAL_NETWORK}:
+  internal:
     driver: bridge
